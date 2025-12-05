@@ -20,8 +20,8 @@
             <td>{{ course.id }}</td>
             <td>{{ course.name }}</td>
             <td>
-                <button type="button" class="btn btn-sm btn-warning"
-                    onclick="editCourse({{ course.id }}, '{{ course.name }}')">
+                <button type="button" class="btn btn-sm btn-warning" data-id="{{ course.id }}"
+                    data-name="{{ course.name }}" onclick="editCourse(this.dataset.id, this.dataset.name)">
                     Editar
                 </button>
                 <form action="{{ url_for('courses.delete_course', id=course.id) }}" method="POST"

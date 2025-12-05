@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ exam.title }}</li>
+        </ol>
+    </nav>
+
+    <h2 class="mb-4">Análise: {{ exam.title }}</h2>
+
+    {% if no_data %}
+    <div class="alert alert-warning">
+        Não há dados suficientes para gerar estatísticas desta prova. Aguarde o envio de gabaritos.
+    </div>
+    {% else %}
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <!-- 1. Average (Primary Blue) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #0d6efd;">
+                <div class="card-header">Média da Turma</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.average }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 2. Median (Success Green) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #198754;">
+                <div class="card-header">Mediana</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.median }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 3. Minimum (Danger Red) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #dc3545;">
+                <div class="card-header">Nota Mínima</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.min }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 4. Maximum (Info Cyan) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #0dcaf0;">
+                <div class="card-header">Nota Máxima</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.max }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 5. Standard Deviation (Orange) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #fd7e14;">
+                <div class="card-header">Desvio Padrão</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.stdev }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 6. Skewness (Purple/Indigo) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #6610f2;">
+                <div class="card-header">Assimetria (a3)</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.skewness }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 7. Kurtosis (Dark/Gray) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #343a40;">
+                <div class="card-header">Curtose (a4)</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.kurtosis }}</h1>
+                </div>
+            </div>
+        </div>
+        <!-- 8. Cronbach's Alpha (Teal) -->
+        <div class="col-md-3">
+            <div class="card text-white mb-3" style="background-color: #20c997;">
+                <div class="card-header" title="Confiabilidade (Consistência Interna)">Alfa de Cronbach</div>
+                <div class="card-body">
+                    <h1 class="card-title text-center">{{ stats.alpha }}</h1>
+                    {% if stats.alpha != "N/A" %}
+                    <p class="card-text text-center text-light">
+                        <small>
+                            {% if stats.alpha >= 0.9 %}Excelente{% elif stats.alpha >= 0.8 %}Bom{% elif stats.alpha >=
+                            0.7 %}Aceitável{% elif stats.alpha >= 0.6 %}Questionável{% else %}Pobre{% endif %}
+                        </small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+    <!-- Grade Distribution Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Distribuição de Notas</div>
+            <div class="card-body">
+                <canvas id="gradeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Analysis Table -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Análise de Questões (Mais Erradas)</div>
+            <div class="card-body overflow-auto" style="max-height: 400px;">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Questão</th>
+                            <th class="text-center">Taxa de Erro</th>
+                            <th class="text-center">Acertos</th>
+                            <th class="text-center"
+                                title="Índice de Discriminação: Mede a capacidade da questão de diferenciar alunos de alto e baixo desempenho.">
+                                Discriminação (D)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in questions %}
+                        <tr>
+                            <td title="{{ q.statement }}">
+                                <small>{{ q.statement }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span
+                                    class="badge bg-{{ 'danger' if q.error_rate > 60 else 'warning' if q.error_rate > 30 else 'success' }}">
+                                    {{ q.error_rate }}%
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {{ q.correct }} / {{ q.total }}
+                            </td>
+                            <td class="text-center">
+                                {% if q.discrimination != "N/A" %}
+                                <span
+                                    class="badge bg-{{ 'danger' if q.discrimination < 0 else 'warning' if q.discrimination < 0.2 else 'success' }}">
+                                    {{ q.discrimination }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if total_pages > 1 %}
+            <div class="card-footer bg-white border-top-0">
+                <nav aria-label="Navegação de questões">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                            <a class="page-link"
+                                href="{{ url_for('dashboard.exam_stats', exam_id=exam.id, page=current_page-1) }}">Anterior</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link text-muted">Pág {{ current_page }} de {{ total_pages }}</span>
+                        </li>
+                        <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                            <a class="page-link"
+                                href="{{ url_for('dashboard.exam_stats', exam_id=exam.id, page=current_page+1) }}">Próxima</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('gradeChart').getContext('2d');
+    const gradeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ distribution.labels | tojson }},
+    datasets: [{
+        label: 'Número de Alunos',
+        data: {{ distribution.data | tojson }},
+        backgroundColor: [
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(255, 159, 64, 0.5)',
+        'rgba(255, 205, 86, 0.5)',
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(54, 162, 235, 0.5)'
+    ],
+        borderColor: [
+        'rgb(255, 99, 132)',
+        'rgb(255, 159, 64)',
+        'rgb(255, 205, 86)',
+        'rgb(75, 192, 192)',
+        'rgb(54, 162, 235)'
+    ],
+        borderWidth: 1
+                }]
+            },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                    ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+        });
+</script>
+{% endif %}
+</div>
+{% endblock %}

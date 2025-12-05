@@ -27,6 +27,7 @@
                         </div>
                     </div>
 
+                    {% if not uploaded_filename %}
                     <div class="mb-4">
                         <label class="form-label"><strong>1. Foto do Gabarito</strong></label>
                         <input type="file" name="gabarito_img" class="form-control" accept="image/*"
@@ -40,6 +41,7 @@
                             capture="environment">
                         <div class="form-text">Tire uma foto do cabeçalho da prova (Nome, Data, Curso).</div>
                     </div>
+                    {% endif %}
 
                     {% if uploaded_filename %}
                     <input type="hidden" name="uploaded_filename" value="{{ uploaded_filename }}">
@@ -97,13 +99,17 @@
                     {% endif %}
 
                     <div class="d-grid gap-2">
+                        {% if uploaded_filename %}
                         <button type="submit" class="btn btn-success btn-lg">
-                            {% if uploaded_filename %}
-                            Confirmar e Corrigir
-                            {% else %}
-                            Processar Imagens
-                            {% endif %}
+                            Confirmar
                         </button>
+                        <a href="{{ url_for('student.upload_answers', unique_code=version.unique_code) }}"
+                            class="btn btn-outline-secondary">Voltar</a>
+                        {% else %}
+                        <button type="submit" class="btn btn-success btn-lg">
+                            Processar Imagens
+                        </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>

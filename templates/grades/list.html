@@ -8,20 +8,46 @@
         <div class="card mb-4">
             <div class="card-body">
                 <form method="GET" class="row align-items-center">
-                    <div class="col-auto">
-                        <label for="exam_id" class="col-form-label fw-bold">Filtrar por Prova:</label>
-                    </div>
-                    <div class="col-auto flex-grow-1">
-                        <select name="exam_id" id="exam_id" class="form-select" onchange="this.form.submit()">
-                            <option value="" {% if not selected_exam_id %}selected{% endif %} disabled>Selecione uma
-                                prova...</option>
-                            <option value="-1" {% if selected_exam_id==-1 %}selected{% endif %}>Todas as Provas</option>
+                    <div class="col-md-3 mb-2">
+                        <label for="exam_id" class="form-label fw-bold">Prova:</label>
+                        <select name="exam_id" id="exam_id" class="form-select">
+                            <option value="">Todas</option>
                             {% for exam in exams %}
                             <option value="{{ exam.id }}" {% if selected_exam_id==exam.id %}selected{% endif %}>
-                                {{ exam.title }} ({{ exam.date }})
+                                {{ exam.title }}
                             </option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label for="course_id" class="form-label fw-bold">Curso:</label>
+                        <select name="course_id" id="course_id" class="form-select">
+                            <option value="">Todos</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}" {% if selected_course_id==course.id %}selected{% endif %}>
+                                {{ course.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label for="start_date" class="form-label fw-bold">De:</label>
+                        <input type="date" class="form-control" name="start_date" id="start_date"
+                            value="{{ selected_start_date or '' }}">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <label for="end_date" class="form-label fw-bold">Até:</label>
+                        <input type="date" class="form-control" name="end_date" id="end_date"
+                            value="{{ selected_end_date or '' }}">
+                    </div>
+                    <div class="col-md-2 mb-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 me-2">Filtrar</button>
+                        {% if selected_exam_id and selected_exam_id != -1 %}
+                        <a href="{{ url_for('grades.export_csv', exam_id=selected_exam_id) }}" class="btn btn-success"
+                            title="Exportar CSV">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                        </a>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -57,7 +83,7 @@
                                 <td>{{ sub.student_course }}</td>
                                 <td>{{ sub.version.label }}</td>
                                 <td>
-                                    <span class="badge bg-{{ 'success' if sub.score >= 6 else 'danger' }}">
+                                    <span class="badge bg-{{ 'success' if sub.score >= 6 else 'danger' }} fs-6 p-2">
                                         {{ "%.1f"|format(sub.score) }}
                                     </span>
                                 </td>
@@ -68,6 +94,18 @@
                                         class="btn btn-sm btn-primary">
                                         Ver Detalhes
                                     </a>
+                                    <form action="{{ url_for('grades.delete_submission', submission_id=sub.id) }}"
+                                        method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Tem certeza que deseja deletar esta nota? O aluno poderá enviar o gabarito novamente.')">
+                                            Deletar
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-sm btn-secondary"
+                                        data-url="{{ url_for('student.upload_answers', unique_code=sub.version.unique_code, _external=True) }}"
+                                        onclick="copyLink(this.dataset.url)">
+                                        Copiar Link
+                                    </button>
                                 </td>
                             </tr>
                             {% else %}
@@ -82,4 +120,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    function copyLink(url) {
+        navigator.clipboard.writeText(url).then(function () {
+            alert('Link copiado para a área de transferência!');
+        }, function (err) {
+            console.error('Erro ao copiar link: ', err);
+            alert('Erro ao copiar link. Por favor, copie manualmente.');
+        });
+    }
+</script>
 {% endblock %}

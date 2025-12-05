@@ -3,6 +3,31 @@ from flask import url_for
 from jinja2 import Environment, FileSystemLoader
 from models import Exam
 
+import re
+
+def sanitize_latex(text):
+    if not text:
+        return ""
+    
+    # List of math environments that need to be in math mode
+    math_envs = ['pmatrix', 'bmatrix', 'vmatrix', 'matrix', 'smallmatrix']
+    
+    for env in math_envs:
+        # Pattern to find \begin{env}...\end{env} NOT already inside $ or \[
+        # This is a simple heuristic. A full parser is complex.
+        # We just check if it looks like it's naked in the text.
+        
+        # We replace \begin{env} with \[\begin{env} and \end{env} with \end{env}\]
+        # BUT only if we don't see a $ right before it.
+        # Actually, let's just use a regex that looks for the block.
+        
+        pattern = r'(?<!\$)(?<!\\\[)(\\begin\{' + env + r'\}.*?\\end\{' + env + r'\})(?!\$)(?!\\\])'
+        
+        # Using a callback to wrap it
+        text = re.sub(pattern, r'\\[ \1 \\]', text, flags=re.DOTALL)
+        
+    return text
+
 def generate_exam_latex(exam_id):
     exam = Exam.query.get_or_404(exam_id)
     
@@ -55,12 +80,14 @@ def generate_exam_latex(exam_id):
             }
             
             for key in order:
-                alts.append(original_map.get(key, ''))
+                content = original_map.get(key, '')
+                alts.append(sanitize_latex(content))
                 
             questions_data.append({
                 'number': eq.question_number,
-                'statement': q.statement,
-                'alts': alts # List of strings [content_of_pos_A, content_of_pos_B...]
+                'statement': sanitize_latex(q.statement),
+                'alts': alts, # List of strings [content_of_pos_A, content_of_pos_B...]
+                'weight': q.weight if q.weight else 1.0
             })
             
         versions_data.append({

@@ -5,16 +5,21 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <a href="{{ url_for('exams.create_exam') }}" class="btn btn-success">Nova Prova</a>
 
-    <form class="d-flex" method="GET" action="{{ url_for('exams.list_exams') }}">
-        <select name="course_id" class="form-select me-2" style="width: auto;">
+    <form class="d-flex align-items-center gap-2" method="GET" action="{{ url_for('exams.list_exams') }}">
+        <select name="course_id" class="form-select" style="width: auto;">
             <option value="">Todas as Disciplinas</option>
             {% for course in courses %}
             <option value="{{ course.id }}" {% if selected_course_id==course.id %}selected{% endif %}>{{ course.name }}
             </option>
             {% endfor %}
         </select>
+
+        <input type="date" class="form-control" name="start_date" value="{{ selected_start_date or '' }}"
+            placeholder="De">
+        <input type="date" class="form-control" name="end_date" value="{{ selected_end_date or '' }}" placeholder="Até">
+
         <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
-        {% if selected_course_id %}
+        {% if selected_course_id or selected_start_date or selected_end_date %}
         <a href="{{ url_for('exams.list_exams') }}" class="btn btn-link text-decoration-none">Limpar</a>
         {% endif %}
     </form>
@@ -24,7 +29,7 @@
     <thead>
         <tr>
             <th>Título</th>
-            <th>Curso</th>
+            <th>Curso/disciplina</th>
             <th>Data</th>
             <th>Versões</th>
             <th>Gabarito</th>
@@ -48,8 +53,16 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{{ url_for('exams.download_latex', exam_id=exam.id) }}" class="btn btn-sm btn-info">Baixar
-                    .tex</a>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('exams.download_latex', exam_id=exam.id) }}" class="btn btn-sm btn-info">Baixar
+                        TEX</a>
+                    <a href="{{ url_for('exams.download_pdf', exam_id=exam.id) }}"
+                        class="btn btn-sm btn-secondary">Baixar PDF</a>
+                    <form method="POST" action="{{ url_for('exams.delete_exam', exam_id=exam.id) }}"
+                        onsubmit="return confirm('Tem certeza que deseja excluir esta prova?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Deletar</button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% endfor %}

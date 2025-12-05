@@ -25,6 +25,9 @@ class Question(db.Model):
     correct = db.Column(db.String(1), nullable=False) # 'A', 'B', 'C', 'D', 'E'
     resolution = db.Column(db.Text) # LaTeX
     comment = db.Column(db.Text) # Internal comment/notes
+    weight = db.Column(db.Float, default=1.0, nullable=False)
+    difficulty = db.Column(db.String(20), default='Médio', nullable=False) # 'Fácil', 'Médio', 'Difícil'
+    tags = db.Column(db.Text, default='') # Comma-separated tags
 
     category = db.relationship('Category', backref=db.backref('questions', lazy=True))
 
@@ -42,6 +45,7 @@ class Exam(db.Model):
     course = db.Column(db.String(100), nullable=True) # Deprecated, keeping for migration
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=True) # Nullable for now until migration
     show_resolution = db.Column(db.Boolean, default=True, nullable=False)
+    max_grade = db.Column(db.Float, default=10.0, nullable=False)
     
     course_rel = db.relationship('Course', backref='exams')
     versions = db.relationship('ExamVersion', backref='exam', lazy=True)

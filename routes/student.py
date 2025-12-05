@@ -26,11 +26,22 @@ def upload_answers(unique_code):
         score = 0
         total = 0
         
+        # Weighted Grading Logic
+        total_weight = 0.0
+        earned_weight = 0.0
+        
         for eq in exam_questions:
             student_answer = answers_dict.get(str(eq.question_number))
             is_correct = False
+            
+            # Get question weight (default to 1.0 if not set)
+            # Handle case where weight might be 0.0 explicitly if that's valid, but here we assume default 1.0 if None
+            q_weight = eq.question.weight if eq.question and eq.question.weight is not None else 1.0
+            total_weight += q_weight
+            
             if student_answer and student_answer == eq.correct_option_char:
                 score += 1
+                earned_weight += q_weight
                 is_correct = True
             
             question_statement = "QUESTÃO DELETADA"
@@ -46,16 +57,21 @@ def upload_answers(unique_code):
                 'student_answer': student_answer if student_answer else "N/A",
                 'correct_answer': eq.correct_option_char,
                 'is_correct': is_correct,
-                'resolution': question_resolution
+                'resolution': question_resolution,
+                'weight': q_weight
             })
             total += 1
+            
+        # Recalculate final grade based on weights
+        max_grade = exam.max_grade if exam.max_grade else 10.0
+        final_grade = (earned_weight / total_weight) * max_grade if total_weight > 0 else 0
             
         return render_template('student/result.html', 
                                exam=exam, 
                                version=version, 
                                score=score, 
                                total=total, 
-                               final_grade=existing_submission.score,
+                               final_grade=final_grade,
                                results=results,
                                submission=existing_submission)
     
@@ -117,12 +133,22 @@ def upload_answers(unique_code):
             # Get questions ordered by number
             exam_questions = sorted(version.questions, key=lambda x: x.question_number)
             
+            # Weighted Grading Logic
+            total_weight = 0.0
+            earned_weight = 0.0
+            
             for eq in exam_questions:
                 student_answer = request.form.get(f'q_{eq.question_number}')
                 answers_dict[eq.question_number] = student_answer
                 is_correct = False
+                
+                # Get question weight (default to 1.0 if not set)
+                q_weight = eq.question.weight if eq.question.weight else 1.0
+                total_weight += q_weight
+                
                 if student_answer and student_answer == eq.correct_option_char:
-                    score += 1
+                    score += 1 # Keep track of raw count too
+                    earned_weight += q_weight
                     is_correct = True
                 
                 results.append({
@@ -131,11 +157,13 @@ def upload_answers(unique_code):
                     'student_answer': student_answer,
                     'correct_answer': eq.correct_option_char,
                     'is_correct': is_correct,
-                    'resolution': eq.question.resolution
+                    'resolution': eq.question.resolution,
+                    'weight': q_weight
                 })
                 total += 1
                 
-            final_grade = (score / total) * 10 if total > 0 else 0
+            max_grade = exam.max_grade if exam.max_grade else 10.0
+            final_grade = (earned_weight / total_weight) * max_grade if total_weight > 0 else 0
             
             # Save Submission
             student_name = request.form.get('student_name')

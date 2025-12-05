@@ -16,20 +16,33 @@
 
 % Header
 \noindent
-\begin{tabular}{|p{0.7\textwidth}|p{0.25\textwidth}|}
+\begin{tabular}{|p{0.6\textwidth}|p{0.25\textwidth}|}
 \hline
 \textbf{\VAR{exam.title}} & \textbf{Versão: \VAR{version.label}} \\
+\hline
 Curso: \VAR{exam.course} & Data: \VAR{exam.date} \\
 \hline
-\multicolumn{2}{|l|}{Nome: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_} \\
+\multicolumn{2}{|l|}{Nome: } \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Nota Máxima: \VAR{exam.max_grade}}} \\
 \hline
 \end{tabular}
 
 \vspace{0.5cm}
 
+\noindent
+\textbf{Instruções Gerais:}
+\begin{itemize}
+    \item Utilize o QR Code abaixo para acessar a página de envio do gabarito.
+    \item Ao acessar a página, você deverá tirar uma foto deste cabeçalho PREENCHIDO com seu nome e demais dados.
+    \item Em seguida, preencha o gabarito eletrônico conforme suas respostas nesta prova.
+\end{itemize}
+
+\vspace{0.5cm}
+
 \begin{enumerate}
 \BLOCK{ for q in version.questions }
-    \item \VAR{q.statement}
+    \item \textbf{[Peso: \VAR{q.weight}]} \VAR{q.statement}
     \begin{enumerate}[label=\Alph*)]
     \BLOCK{ for alt in q.alts }
         \item \VAR{alt}

@@ -1,0 +1,252 @@
+﻿{% extends 'base.html' %}
+
+{% block content %}
+<h2>Criar Nova Prova</h2>
+<form method="POST">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label>Título da Prova</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label>Curso / Disciplina</label>
+            <select name="course_id" class="form-select" required>
+                <option value="">Selecione...</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label>Data</label>
+            <input type="text" name="date" class="form-control" placeholder="DD/MM/AAAA" required>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label>Número de Versões</label>
+            <input type="number" name="num_versions" class="form-control" value="1" min="1" max="150" required>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label>Nota Máxima</label>
+            <input type="number" name="max_grade" class="form-control" value="10.0" step="0.1" min="0.1" required>
+        </div>
+        <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="show_resolution" id="show_resolution" checked>
+                <label class="form-check-label" for="show_resolution">
+                    Disponibilizar Resolução/Gabarito
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <label class="form-label">Distribuição de Dificuldade (Meta em %)</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text">Fácil</span>
+                <input type="number" name="pct_easy" class="form-control" value="30" min="0" max="100">
+                <span class="input-group-text">%</span>
+
+                <span class="input-group-text">Médio</span>
+                <input type="number" name="pct_medium" class="form-control" value="50" min="0" max="100">
+                <span class="input-group-text">%</span>
+
+                <span class="input-group-text">Difícil</span>
+                <input type="number" name="pct_hard" class="form-control" value="20" min="0" max="100">
+                <span class="input-group-text">%</span>
+            </div>
+            <small class="text-muted">O sistema tentará aproximar a distribuição conforme a disponibilidade de questões
+                em cada categoria.</small>
+        </div>
+    </div>
+
+    <hr>
+    <h4>Distribuição de Questões</h4>
+    <p>Selecione quantas questões de cada categoria:</p>
+
+    <div class="card bg-light">
+        <div class="card-body">
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Selecionar Categoria</label>
+                    <select id="sel_category" class="form-select">
+                        <option value="">Escolha uma categoria...</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" data-avail="{{ cat.questions|length }}" data-name="{{ cat.name }}">
+                            {{ cat.name }} ({{ cat.questions|length }} disponíveis)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Qtd Mín</label>
+                    <input type="number" id="sel_min" class="form-control" min="0" value="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Qtd Máx</label>
+                    <input type="number" id="sel_max" class="form-control" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-success w-100" onclick="addCategory()">
+                        + Add
+                    </button>
+                </div>
+            </div>
+
+            <table class="table table-sm table-bordered bg-white" id="selectionTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th style="width: 80px;">Min</th>
+                        <th style="width: 80px;">Max</th>
+                        <th style="width: 80px;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows added via JS -->
+                </tbody>
+            </table>
+
+            <div id="hiddenInputsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Debugging fix applied
+        const addedCategories = new Set();
+        const maxQuestionsMap = {
+            {% for cat in categories %}
+        "{{ cat.id }}": { { cat.questions | length } },
+        {% endfor %}
+        };
+
+        function updateMaxLimit() {
+            const selCat = document.getElementById('sel_category');
+            const selMin = document.getElementById('sel_min');
+            const selMax = document.getElementById('sel_max');
+
+            const selectedOption = selCat.options[selCat.selectedIndex];
+            if (selectedOption && selectedOption.dataset.avail) {
+                const maxAvail = parseInt(selectedOption.dataset.avail);
+                selMin.max = maxAvail;
+                selMax.max = maxAvail;
+            } else {
+                selMin.removeAttribute('max');
+                selMax.removeAttribute('max');
+            }
+        }
+
+        document.getElementById('sel_category').addEventListener('change', updateMaxLimit);
+
+        function addCategory() {
+            const selCat = document.getElementById('sel_category');
+            const selMin = document.getElementById('sel_min');
+            const selMax = document.getElementById('sel_max');
+
+            const catId = selCat.value;
+            const minQty = parseInt(selMin.value);
+            const maxQty = parseInt(selMax.value);
+
+            if (!catId) {
+                alert('Selecione uma categoria.');
+                return;
+            }
+
+            if (isNaN(minQty) || minQty < 0) {
+                alert('Quantidade mínima inválida.');
+                return;
+            }
+
+            if (isNaN(maxQty) || maxQty <= 0) {
+                alert('Quantidade máxima inválida.');
+                return;
+            }
+
+            if (minQty > maxQty) {
+                alert('Mínimo não pode ser maior que o Máximo.');
+                return;
+            }
+
+            const maxAvail = maxQuestionsMap[catId];
+
+            if (minQty > maxAvail) {
+                alert(`Quantidade mínima indisponível. Máximo para esta categoria: ${maxAvail}`);
+                return;
+            }
+
+            if (maxQty > maxAvail) {
+                alert(`Quantidade máxima indisponível. Máximo para esta categoria: ${maxAvail}`);
+                return;
+            }
+
+            if (addedCategories.has(catId)) {
+                alert('Esta categoria já foi adicionada. Remova-a para alterar a quantidade.');
+                return;
+            }
+
+            const catName = selCat.options[selCat.selectedIndex].getAttribute('data-name');
+
+            addJobRow(catId, catName, minQty, maxQty);
+
+            // Reset fields
+            selCat.value = "";
+            selMin.value = 1;
+            selMax.value = 1;
+        }
+
+        function addJobRow(id, name, minQty, maxQty) {
+            const tbody = document.querySelector('#selectionTable tbody');
+            const table = document.getElementById('selectionTable');
+            const hiddenContainer = document.getElementById('hiddenInputsContainer');
+
+            const row = document.createElement('tr');
+            row.id = `row_cat_${id}`;
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${minQty}</td>
+                <td>${maxQty}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeCategory('${id}')">X</button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+
+            // Add Hidden Inputs
+            const inputMin = document.createElement('input');
+            inputMin.type = 'hidden';
+            inputMin.name = `cat_${id}_min`;
+            inputMin.value = minQty;
+            inputMin.id = `input_cat_${id}_min`;
+            hiddenContainer.appendChild(inputMin);
+
+            const inputMax = document.createElement('input');
+            inputMax.type = 'hidden';
+            inputMax.name = `cat_${id}_max`;
+            inputMax.value = maxQty;
+            inputMax.id = `input_cat_${id}_max`;
+            hiddenContainer.appendChild(inputMax);
+
+            addedCategories.add(id);
+            table.style.display = 'table';
+        }
+
+        function removeCategory(id) {
+            document.getElementById(`row_cat_${id}`).remove();
+            document.getElementById(`input_cat_${id}_min`).remove();
+            document.getElementById(`input_cat_${id}_max`).remove();
+            addedCategories.delete(id);
+
+            if (addedCategories.size === 0) {
+                document.getElementById('selectionTable').style.display = 'none';
+            }
+        }
+    </script>
+
+    <button type="submit" class="btn btn-primary mt-3">Gerar Prova</button>
+</form>
+{% endblock %}

@@ -38,7 +38,8 @@
         {% endif %}
 
         <div class="alert alert-info text-center">
-            <h1 class="display-4">Nota: {{ "%.1f"|format(final_grade) }}</h1>
+            <h1 class="display-4">Nota: {{ "%.1f"|format(final_grade) }} / {{ "%.1f"|format(exam.max_grade if
+                exam.max_grade else 10.0) }}</h1>
             <p>Acertos: {{ score }} de {{ total }}</p>
         </div>
 
@@ -47,7 +48,7 @@
         {% for res in results %}
         <div class="card mb-3 border-{{ 'success' if res.is_correct else 'danger' }}">
             <div class="card-header">
-                <strong>Questão {{ res.number }}</strong>
+                <strong>Questão {{ res.number }}</strong> <span class="badge bg-secondary">Peso: {{ res.weight }}</span>
                 {% if res.is_correct %}
                 <span class="badge bg-success float-end">Correto</span>
                 {% else %}
@@ -55,14 +56,14 @@
                 {% endif %}
             </div>
             <div class="card-body">
-                <p><strong>Enunciado:</strong> $$ {{ res.statement }} $$</p>
+                <p><strong>Enunciado:</strong> {{ res.statement }}</p>
                 <p>Sua resposta: <strong>{{ res.student_answer }}</strong> | Correta: <strong>{{ res.correct_answer
                         }}</strong></p>
 
                 {% if res.resolution %}
                 <div class="mt-3 p-2 bg-light">
                     <strong>Resolução:</strong>
-                    <p>$$ {{ res.resolution }} $$</p>
+                    <p>{{ res.resolution }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -75,7 +76,7 @@
         </div>
         {% endif %}
 
-        <a href="/" class="btn btn-primary">Voltar ao Início</a>
+
     </div>
 </div>
 {% endblock %}

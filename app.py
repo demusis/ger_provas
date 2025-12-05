@@ -27,21 +27,21 @@ def create_app(config_class=Config):
             db.session.commit()
             print("Admin user created.")
             
-        # Migrate Courses
-        from models import Exam, Course
-        exams = Exam.query.all()
-        for exam in exams:
-            if exam.course and not exam.course_id:
-                # Check if course exists
-                course = Course.query.filter_by(name=exam.course).first()
-                if not course:
-                    course = Course(name=exam.course)
-                    db.session.add(course)
-                    db.session.commit()
-                
-                exam.course_id = course.id
-                db.session.commit()
-                print(f"Migrated exam {exam.id} to course {course.name}")
+        # Migrate Courses (Legacy - Commented out to prevent startup errors during schema updates)
+        # from models import Exam, Course
+        # exams = Exam.query.all()
+        # for exam in exams:
+        #     if exam.course and not exam.course_id:
+        #         # Check if course exists
+        #         course = Course.query.filter_by(name=exam.course).first()
+        #         if not course:
+        #             course = Course(name=exam.course)
+        #             db.session.add(course)
+        #             db.session.commit()
+        #         
+        #         exam.course_id = course.id
+        #         db.session.commit()
+        #         print(f"Migrated exam {exam.id} to course {course.name}")
 
     # Register Blueprints
     from routes.questions import bp as questions_bp
@@ -67,6 +67,12 @@ def create_app(config_class=Config):
 
     from routes.courses import bp as courses_bp
     app.register_blueprint(courses_bp)
+
+    from routes.help import bp as help_bp
+    app.register_blueprint(help_bp)
+
+    from routes.dashboard import bp as dashboard_bp
+    app.register_blueprint(dashboard_bp)
 
     @app.route('/')
     def index():

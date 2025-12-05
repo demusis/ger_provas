@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Provas Geradas</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('exams.create_exam') }}" class="btn btn-success">Nova Prova</a>
+
+    <form class="d-flex" method="GET" action="{{ url_for('exams.list_exams') }}">
+        <select name="course_id" class="form-select me-2" style="width: auto;">
+            <option value="">Todas as Disciplinas</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}" {% if selected_course_id==course.id %}selected{% endif %}>{{ course.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+        {% if selected_course_id %}
+        <a href="{{ url_for('exams.list_exams') }}" class="btn btn-link text-decoration-none">Limpar</a>
+        {% endif %}
+    </form>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Curso</th>
+            <th>Data</th>
+            <th>Versões</th>
+            <th>Gabarito</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for exam in exams %}
+        <tr>
+            <td>{{ exam.title }}</td>
+            <td>{{ exam.course }}</td>
+            <td>{{ exam.date }}</td>
+            <td>{{ exam.versions|length }}</td>
+            <td>
+                {% if exam.show_resolution %}
+                <a href="{{ url_for('exams.toggle_resolution', exam_id=exam.id) }}" class="btn btn-sm btn-success"
+                    title="Clique para ocultar">Visível</a>
+                {% else %}
+                <a href="{{ url_for('exams.toggle_resolution', exam_id=exam.id) }}" class="btn btn-sm btn-secondary"
+                    title="Clique para exibir">Oculto</a>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('exams.download_latex', exam_id=exam.id) }}" class="btn btn-sm btn-info">Baixar
+                    .tex</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

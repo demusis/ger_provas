@@ -1,0 +1,44 @@
+{
+    "categories": [
+        {
+            "id": 1,
+            "name": "Cálculo I",
+            "description": "Limites, Derivadas e Integrais"
+        },
+        {
+            "id": 2,
+            "name": "Álgebra Linear",
+            "description": "Matrizes e Vetores"
+        }
+    ],
+    "questions": [
+        {
+            "id": 2,
+            "category_id": 1,
+            "statement": "\\int_0^1 x dx",
+            "alt_a": "1",
+            "alt_b": "0.5",
+            "alt_c": "0",
+            "alt_d": "2",
+            "alt_e": null,
+            "num_alternatives": 4,
+            "correct": "B",
+            "resolution": "\\left[\\frac{x^2}{2}\\right]_0^1 = \\frac{1}{2} - 0 = 0.5",
+            "comment": null
+        },
+        {
+            "id": 3,
+            "category_id": 2,
+            "statement": "\\text{O determinante de } \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}",
+            "alt_a": "0",
+            "alt_b": "1",
+            "alt_c": "2",
+            "alt_d": "-1",
+            "alt_e": null,
+            "num_alternatives": 4,
+            "correct": "B",
+            "resolution": "1 \\times 1 - 0 \\times 0 = 1",
+            "comment": null
+        }
+    ]
+}

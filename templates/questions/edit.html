@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Questão</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Categoria</label>
+            <select class="form-select" id="category_id" name="category_id" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id==question.category_id %}selected{% endif %}>{{
+                    category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="num_alternatives" class="form-label">Número de Alternativas</label>
+            <select class="form-select" id="num_alternatives" name="num_alternatives" onchange="updateAlternatives()">
+                <option value="2" {% if question.num_alternatives==2 %}selected{% endif %}>2 (A, B)</option>
+                <option value="3" {% if question.num_alternatives==3 %}selected{% endif %}>3 (A, B, C)</option>
+                <option value="4" {% if question.num_alternatives==4 %}selected{% endif %}>4 (A, B, C, D)</option>
+                <option value="5" {% if question.num_alternatives==5 %}selected{% endif %}>5 (A, B, C, D, E)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="statement" class="form-label">Enunciado (LaTeX suportado entre $$)</label>
+            <textarea class="form-control" id="statement" name="statement" rows="3"
+                required>{{ question.statement }}</textarea>
+        </div>
+
+        <div id="alternatives-container">
+            <div class="mb-3 alt-group" id="div_alt_a">
+                <label for="alt_a" class="form-label">Alternativa A</label>
+                <input type="text" class="form-control" id="alt_a" name="alt_a" value="{{ question.alt_a }}" required>
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_b">
+                <label for="alt_b" class="form-label">Alternativa B</label>
+                <input type="text" class="form-control" id="alt_b" name="alt_b" value="{{ question.alt_b }}" required>
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_c">
+                <label for="alt_c" class="form-label">Alternativa C</label>
+                <input type="text" class="form-control" id="alt_c" name="alt_c" value="{{ question.alt_c }}">
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_d">
+                <label for="alt_d" class="form-label">Alternativa D</label>
+                <input type="text" class="form-control" id="alt_d" name="alt_d" value="{{ question.alt_d }}">
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_e" style="display:none;">
+                <label for="alt_e" class="form-label">Alternativa E</label>
+                <input type="text" class="form-control" id="alt_e" name="alt_e" value="{{ question.alt_e or '' }}">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="correct" class="form-label">Alternativa Correta</label>
+            <select class="form-select" id="correct" name="correct" required>
+                <option value="A" {% if question.correct=='A' %}selected{% endif %}>A</option>
+                <option value="B" {% if question.correct=='B' %}selected{% endif %}>B</option>
+                <option value="C" {% if question.correct=='C' %}selected{% endif %}>C</option>
+                <option value="D" {% if question.correct=='D' %}selected{% endif %}>D</option>
+                <option value="E" {% if question.correct=='E' %}selected{% endif %}>E</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="resolution" class="form-label">Resolução (Opcional)</label>
+            <textarea class="form-control" id="resolution" name="resolution"
+                rows="3">{{ question.resolution or '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="comment" class="form-label">Comentário/Observação (Opcional)</label>
+            <textarea class="form-control" id="comment" name="comment" rows="2">{{ question.comment or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+    </form>
+</div>
+
+<script>
+    function updateAlternatives() {
+        const num = parseInt(document.getElementById('num_alternatives').value);
+
+        // Show/Hide inputs
+        document.getElementById('div_alt_c').style.display = num >= 3 ? 'block' : 'none';
+        document.getElementById('div_alt_d').style.display = num >= 4 ? 'block' : 'none';
+        document.getElementById('div_alt_e').style.display = num >= 5 ? 'block' : 'none';
+
+        // Update required attributes
+        document.getElementById('alt_c').required = num >= 3;
+        document.getElementById('alt_d').required = num >= 4;
+        document.getElementById('alt_e').required = num >= 5;
+
+        // Update Correct Option Select
+        const correctSelect = document.getElementById('correct');
+        const options = correctSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].style.display = i < num ? 'block' : 'none';
+        }
+        // Reset selection if hidden (only if current selection is invalid)
+        if (correctSelect.selectedIndex >= num) {
+            correctSelect.selectedIndex = 0;
+        }
+    }
+
+    // Initialize
+    updateAlternatives();
+</script>
+{% endblock %}

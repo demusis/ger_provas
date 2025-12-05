@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Banco de Questões</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('questions.create_question') }}" class="btn btn-primary">Nova Questão</a>
+
+    <form class="d-flex" method="GET" action="{{ url_for('questions.list_questions') }}">
+        <select name="category_id" class="form-select me-2" style="width: auto;">
+            <option value="">Todas as Categorias</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if selected_category_id==cat.id %}selected{% endif %}>{{ cat.name }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+        {% if selected_category_id %}
+        <a href="{{ url_for('questions.list_questions') }}" class="btn btn-link text-decoration-none">Limpar</a>
+        {% endif %}
+    </form>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Categoria</th>
+            <th>Enunciado (Preview)</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for q in questions %}
+        <tr>
+            <td>{{ q.id }}</td>
+            <td>{{ q.category.name }}</td>
+            <td>
+                <div
+                    >
+                    {{ q.statement }}
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-info" onclick="viewQuestion({{ q.id }})">Visualizar</button>
+                <a href="{{ url_for('questions.edit_question', id=q.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                <form action="{{ url_for('questions.delete_question', id=q.id) }}" method="POST"
+                    style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Tem certeza?')">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="viewQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Visualizar Questão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <p><strong>Categoria:</strong> <span id="qCategory"></span></p>
+                    <hr>
+                    <p><strong>Enunciado:</strong></p>
+                    <div id="qStatement" class="mb-3"></div>
+
+                    <p><strong>Alternativas:</strong></p>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item" id="qAltA"></li>
+                        <li class="list-group-item" id="qAltB"></li>
+                        <li class="list-group-item" id="qAltC"></li>
+                        <li class="list-group-item" id="qAltD"></li>
+                        <li class="list-group-item" id="qAltE"></li>
+                    </ul>
+
+                    <p><strong>Correta:</strong> <span id="qCorrect" class="badge bg-success"></span></p>
+
+                    <hr>
+                    <p><strong>Resolução:</strong></p>
+                    <div id="qResolution"></div>
+
+                    <hr>
+                    <p><strong>Comentário Interno:</strong></p>
+                    <div id="qComment" class="text-muted"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Trigger MathJax on page load for the list previews
+    document.addEventListener("DOMContentLoaded", function () {
+        if (window.MathJax) {
+            MathJax.typesetPromise();
+        }
+    });
+
+    function viewQuestion(id) {
+        fetch(`/questions/get/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('qCategory').textContent = data.category;
+
+                // Content is now expected to have its own delimiters if needed
+                document.getElementById('qStatement').innerHTML = data.statement;
+
+                document.getElementById('qAltA').innerHTML = `<strong>A)</strong> ${data.alt_a}`;
+                document.getElementById('qAltB').innerHTML = `<strong>B)</strong> ${data.alt_b}`;
+
+                const altC = document.getElementById('qAltC');
+                if (data.alt_c) {
+                    altC.innerHTML = `<strong>C)</strong> ${data.alt_c}`;
+                    altC.style.display = 'block';
+                } else {
+                    altC.style.display = 'none';
+                }
+
+                const altD = document.getElementById('qAltD');
+                if (data.alt_d) {
+                    altD.innerHTML = `<strong>D)</strong> ${data.alt_d}`;
+                    altD.style.display = 'block';
+                } else {
+                    altD.style.display = 'none';
+                }
+
+                const altE = document.getElementById('qAltE');
+                if (data.alt_e) {
+                    altE.innerHTML = `<strong>E)</strong> ${data.alt_e}`;
+                    altE.style.display = 'block';
+                } else {
+                    altE.style.display = 'none';
+                }
+
+                document.getElementById('qCorrect').textContent = data.correct;
+
+                const resolution = data.resolution ? data.resolution : '<em>Sem resolução cadastrada.</em>';
+                document.getElementById('qResolution').innerHTML = resolution;
+
+                document.getElementById('qComment').textContent = data.comment || '';
+
+                const modal = new bootstrap.Modal(document.getElementById('viewQuestionModal'));
+                modal.show();
+
+                // Trigger MathJax
+                if (window.MathJax) {
+                    MathJax.typesetPromise([document.getElementById('viewQuestionModal')]);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+{% endblock %}

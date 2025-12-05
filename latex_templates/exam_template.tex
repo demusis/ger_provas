@@ -1,0 +1,67 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+\geometry{a4paper, margin=2cm}
+
+\begin{document}
+
+\BLOCK{ for version in versions }
+
+% Header
+\noindent
+\begin{tabular}{|p{0.7\textwidth}|p{0.25\textwidth}|}
+\hline
+\textbf{\VAR{exam.title}} & \textbf{Versão: \VAR{version.label}} \\
+Curso: \VAR{exam.course} & Data: \VAR{exam.date} \\
+\hline
+\multicolumn{2}{|l|}{Nome: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_} \\
+\hline
+\end{tabular}
+
+\vspace{0.5cm}
+
+\begin{enumerate}
+\BLOCK{ for q in version.questions }
+    \item \VAR{q.statement}
+    \begin{enumerate}[label=\Alph*)]
+    \BLOCK{ for alt in q.alts }
+        \item \VAR{alt}
+    \BLOCK{ endfor }
+    \end{enumerate}
+    \vspace{0.3cm}
+\BLOCK{ endfor }
+\end{enumerate}
+
+\vfill
+
+\noindent
+\begin{minipage}{0.6\textwidth}
+    \textbf{Gabarito:} \\
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        Q & A & B & C & D & E \\
+        \hline
+        \BLOCK{ for q in version.questions }
+        \VAR{q.number} & & & & & \\ \hline
+        \BLOCK{ endfor }
+    \end{tabular}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+    \centering
+    \includegraphics[width=4cm]{\VAR{cwd}/static/qr_codes/\VAR{version.qr_code}} \\
+    \vspace{0.2cm}
+    \footnotesize \url{\VAR{version.qr_url}} \\
+    Escaneie para enviar o gabarito
+\end{minipage}
+
+\clearpage
+\BLOCK{ endfor }
+
+\end{document}

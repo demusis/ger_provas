@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Configurações</h2>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Backup do Banco de Dados</h5>
+            </div>
+            <div class="card-body">
+                <p>Faça o download de todas as questões e categorias cadastradas em formato JSON.</p>
+                <a href="{{ url_for('settings.download_db') }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Baixar Banco de Questões
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Restaurar Banco de Dados</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Atenção:</strong>
+                    Esta ação irá <strong>substituir</strong> todas as questões e categorias existentes.
+                    Certifique-se de ter um backup antes de prosseguir.
+                </div>
+
+                <form action="{{ url_for('settings.upload_db') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="db_file" class="form-label">Arquivo JSON</label>
+                        <input class="form-control" type="file" id="db_file" name="db_file" accept=".json" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Tem certeza? Isso irá apagar todas as questões atuais!')">
+                        <i class="fas fa-upload"></i> Enviar e Sobrescrever
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Alterar Senha</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('settings.change_password') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Senha Atual</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">Nova Senha</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirmar Nova Senha</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                            required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

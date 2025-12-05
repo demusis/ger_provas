@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center mt-5">
+    <h1 class="display-4">Bem-vindo ao Gerador de Provas</h1>
+    <p class="lead">Crie questões, gere provas em LaTeX e corrija automaticamente.</p>
+    <hr class="my-4">
+    <p>Comece cadastrando algumas questões ou criando uma nova prova.</p>
+    <a class="btn btn-primary btn-lg m-1" href="{{ url_for('questions.list_questions') }}" role="button">Gerenciar
+        Questões</a>
+    <a class="btn btn-secondary btn-lg m-1" href="{{ url_for('categories.list_categories') }}" role="button">Gerenciar
+        Categorias</a>
+    <a class="btn btn-warning btn-lg m-1" href="{{ url_for('courses.list_courses') }}" role="button">Gerenciar
+        Disciplinas</a>
+    <a class="btn btn-success btn-lg m-1" href="{{ url_for('exams.list_exams') }}" role="button">Criar Prova</a>
+    <a class="btn btn-info btn-lg m-1 text-white" href="{{ url_for('grades.list_grades') }}" role="button">Ver Notas e
+        Gabaritos</a>
+</div>
+{% endblock %}

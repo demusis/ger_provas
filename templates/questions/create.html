@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Criar Nova Questão</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="category_id" class="form-label">Categoria</label>
+            <select class="form-select" id="category_id" name="category_id" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="num_alternatives" class="form-label">Número de Alternativas</label>
+            <select class="form-select" id="num_alternatives" name="num_alternatives" onchange="updateAlternatives()">
+                <option value="2">2 (A, B)</option>
+                <option value="3">3 (A, B, C)</option>
+                <option value="4" selected>4 (A, B, C, D)</option>
+                <option value="5">5 (A, B, C, D, E)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="statement" class="form-label">Enunciado (LaTeX suportado entre $$)</label>
+            <textarea class="form-control" id="statement" name="statement" rows="3" required></textarea>
+        </div>
+
+        <div id="alternatives-container">
+            <div class="mb-3 alt-group" id="div_alt_a">
+                <label for="alt_a" class="form-label">Alternativa A</label>
+                <input type="text" class="form-control" id="alt_a" name="alt_a" required>
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_b">
+                <label for="alt_b" class="form-label">Alternativa B</label>
+                <input type="text" class="form-control" id="alt_b" name="alt_b" required>
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_c">
+                <label for="alt_c" class="form-label">Alternativa C</label>
+                <input type="text" class="form-control" id="alt_c" name="alt_c">
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_d">
+                <label for="alt_d" class="form-label">Alternativa D</label>
+                <input type="text" class="form-control" id="alt_d" name="alt_d">
+            </div>
+            <div class="mb-3 alt-group" id="div_alt_e" style="display:none;">
+                <label for="alt_e" class="form-label">Alternativa E</label>
+                <input type="text" class="form-control" id="alt_e" name="alt_e">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="correct" class="form-label">Alternativa Correta</label>
+            <select class="form-select" id="correct" name="correct" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="resolution" class="form-label">Resolução (Opcional)</label>
+            <textarea class="form-control" id="resolution" name="resolution" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="comment" class="form-label">Comentário/Observação (Opcional)</label>
+            <textarea class="form-control" id="comment" name="comment" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar Questão</button>
+    </form>
+</div>
+
+<script>
+    function updateAlternatives() {
+        const num = parseInt(document.getElementById('num_alternatives').value);
+
+        // Show/Hide inputs
+        document.getElementById('div_alt_c').style.display = num >= 3 ? 'block' : 'none';
+        document.getElementById('div_alt_d').style.display = num >= 4 ? 'block' : 'none';
+        document.getElementById('div_alt_e').style.display = num >= 5 ? 'block' : 'none';
+
+        // Update required attributes
+        document.getElementById('alt_c').required = num >= 3;
+        document.getElementById('alt_d').required = num >= 4;
+        document.getElementById('alt_e').required = num >= 5;
+
+        // Update Correct Option Select
+        const correctSelect = document.getElementById('correct');
+        const options = correctSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            // A=0, B=1, C=2, D=3, E=4
+            // If num=2, show A,B (idx 0,1). Hide others.
+            options[i].style.display = i < num ? 'block' : 'none';
+        }
+        // Reset selection if hidden
+        if (correctSelect.selectedIndex >= num) {
+            correctSelect.selectedIndex = 0;
+        }
+    }
+
+    // Initialize
+    updateAlternatives();
+</script>
+{% endblock %}

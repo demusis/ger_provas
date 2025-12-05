@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Criar Nova Prova</h2>
+<form method="POST">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label>Título da Prova</label>
+            <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label>Curso / Disciplina</label>
+            <select name="course_id" class="form-select" required>
+                <option value="">Selecione...</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label>Data</label>
+            <input type="text" name="date" class="form-control" placeholder="DD/MM/AAAA" required>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label>Número de Versões</label>
+            <input type="number" name="num_versions" class="form-control" value="1" min="1" max="150" required>
+        </div>
+        <div class="col-md-4 mb-3 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="show_resolution" id="show_resolution" checked>
+                <label class="form-check-label" for="show_resolution">
+                    Disponibilizar Resolução/Gabarito
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <h4>Distribuição de Questões</h4>
+    <p>Selecione quantas questões de cada categoria:</p>
+
+    {% for cat in categories %}
+    <div class="mb-2 row">
+        <label class="col-sm-4 col-form-label">{{ cat.name }} (Total disponível: {{ cat.questions|length }})</label>
+        <div class="col-sm-2">
+            <input type="number" name="cat_{{ cat.id }}" class="form-control" value="0" min="0"
+                max="{{ cat.questions|length }}">
+        </div>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary mt-3">Gerar Prova</button>
+</form>
+{% endblock %}
